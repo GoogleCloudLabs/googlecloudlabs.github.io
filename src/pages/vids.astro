@@ -1,0 +1,93 @@
+---
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const rawVids = (await getCollection('vids')).sort((a, b) => a.data.order - b.data.order);
+const renderedVids = await Promise.all(
+  rawVids.map(async (entry) => ({
+    entry,
+    ...(await render(entry)),
+  })),
+);
+---
+
+<BaseLayout
+  title="Pods & Vids · Google Cloud Labs"
+  description="Audio episodes with persistent cross-page playback and video walkthroughs from Google Cloud Labs."
+>
+  <header class="mb-8">
+    <span class="lab-pill">Zone 02 · /vids</span>
+    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-3">
+      Pods &amp; Video Dispatches
+    </h1>
+    <p class="text-sm sm:text-base mt-2 max-w-3xl" style="color: var(--fg-secondary);">
+      Start any episode below and browse across Playground rigs or Field Notes — the bottom audio deck persists seamlessly via Astro View Transitions without dropping playback.
+    </p>
+  </header>
+
+  <section class="space-y-5" aria-label="Podcast and video episodes">
+    {renderedVids.map(({ entry, Content }) => (
+      <article class="lab-card p-6 sm:p-7">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs lab-mono" style="color: var(--fg-muted);">
+          <span class="font-bold" style="color: var(--accent-tertiary);">
+            {entry.data.episodeNumber} · {entry.data.duration}
+          </span>
+          <span>Published {entry.data.publishedDate}</span>
+        </div>
+
+        <h2 class="text-xl sm:text-2xl font-bold mt-2">
+          {entry.data.title}
+        </h2>
+
+        <p class="text-sm sm:text-base mt-2 leading-relaxed" style="color: var(--fg-secondary);">
+          {entry.data.summary}
+        </p>
+
+        <div class="mt-4 text-xs sm:text-sm space-y-2 leading-relaxed" style="color: var(--fg-muted);">
+          <Content />
+        </div>
+
+        <div class="mt-5 pt-4 flex flex-wrap items-center justify-between gap-4" style="border-top: 1px solid var(--border-subtle);">
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              data-play-episode
+              data-ep-title={entry.data.title}
+              data-ep-code={`${entry.data.episodeNumber} · ${entry.data.duration}`}
+              data-ep-freq={String(entry.data.audioFreqHz)}
+              class="lab-btn-primary text-xs cursor-pointer"
+            >
+              ▶ Play in Persistent Deck
+            </button>
+            <a
+              href={entry.data.youtubeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="lab-btn-ghost text-xs"
+            >
+              Watch on YouTube ↗
+            </a>
+          </div>
+
+          <p class="lab-mono text-xs" style="color: var(--fg-muted);">
+            Hosts: {entry.data.speakers.join(' · ')}
+          </p>
+        </div>
+      </article>
+    ))}
+  </section>
+</BaseLayout>

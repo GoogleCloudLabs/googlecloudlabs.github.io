@@ -1,0 +1,269 @@
+---
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LabDiagram from '../components/LabDiagram.astro';
+import { withBase } from '../utils/paths';
+
+const experiments = (await getCollection('experiments')).sort((a, b) => a.data.order - b.data.order);
+const trends = (await getCollection('trends')).sort((a, b) => a.data.order - b.data.order);
+const vids = (await getCollection('vids')).sort((a, b) => a.data.order - b.data.order);
+const featuredEp = vids[0];
+---
+
+<BaseLayout title="Google Cloud Labs · Interactive R&D Arcade">
+  <!-- Hero + Bento Canvas -->
+  <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+    <div class="lg:col-span-7 lab-card p-6 sm:p-8 flex flex-col justify-between">
+      <div>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="lab-pill">
+            <span class="w-2 h-2 rounded-full inline-block" style="background: var(--accent-secondary);"></span>
+            Sprint 01 · Agent Factories
+          </span>
+          <span class="lab-mono text-xs" style="color: var(--fg-muted);">
+            Apache-2.0 · Zero Cookies · Static Islands
+          </span>
+        </div>
+
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-[1.08] mt-4">
+          Where autonomous <span style="color: var(--accent-primary);">agent rigs</span> meet empirical verification.
+        </h1>
+
+        <p class="text-sm sm:text-base leading-relaxed mt-4 max-w-2xl" style="color: var(--fg-secondary);">
+          Open-source prototypes, adversarial evaluation harnesses, audio field dispatches, and reproducible benchmarks from the Google Cloud Labs engineering team.
+        </p>
+      </div>
+
+      <div class="mt-6 pt-5 flex flex-wrap items-center justify-between gap-4" style="border-top: 1px solid var(--border-subtle);">
+        <div class="flex flex-wrap items-center gap-3">
+          <a href={withBase('/experiments')} class="lab-btn-primary text-sm">
+            Enter Playground →
+          </a>
+          {featuredEp && (
+            <button
+              type="button"
+              data-play-episode
+              data-ep-title={featuredEp.data.title}
+              data-ep-code={`${featuredEp.data.episodeNumber} · ${featuredEp.data.duration}`}
+              data-ep-freq={String(featuredEp.data.audioFreqHz)}
+              class="lab-btn-ghost text-sm cursor-pointer"
+            >
+              ▶ Play {featuredEp.data.episodeNumber} ({featuredEp.data.duration})
+            </button>
+          )}
+          <a href={withBase('/trends')} class="lab-btn-ghost text-sm">
+            Field Notes
+          </a>
+        </div>
+
+        <div class="flex items-center gap-5 lab-mono text-xs" style="color: var(--fg-muted);">
+          <span><strong style="color: var(--accent-primary);">{experiments.length}</strong> Rigs</span>
+          <span><strong style="color: var(--accent-secondary);">{trends.length}</strong> Studies</span>
+          <span><strong style="color: var(--accent-tertiary);">{vids.length}</strong> Pods</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Vector Diagram Bento Card -->
+    <div class="lg:col-span-5 lab-card p-5 sm:p-6 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <span class="lab-mono text-xs font-bold uppercase tracking-wider" style="color: var(--accent-secondary);">
+            Featured Benchmark · 1,110 Bids
+          </span>
+          <a href={withBase('/trends/cross-family-agent-policing')} class="lab-mono text-xs underline" style="color: var(--accent-primary);">
+            Read Study →
+          </a>
+        </div>
+        <h2 class="text-lg font-bold leading-snug mb-3">
+          Cross-Family Multi-Model Policing Architecture
+        </h2>
+        <LabDiagram
+          kind="policing-flow"
+          caption="Orthogonal Lead + Auditor pairs cut human escalations from 56.2% to 19.0%"
+        />
+      </div>
+
+      <div class="grid grid-cols-3 gap-2.5 mt-4">
+        <div class="p-2.5 rounded-lg" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle);">
+          <p class="lab-mono text-[10px] uppercase" style="color: var(--fg-muted);">Blocked</p>
+          <p class="lab-mono text-lg font-bold" style="color: var(--accent-primary);">77.4%</p>
+        </div>
+        <div class="p-2.5 rounded-lg" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle);">
+          <p class="lab-mono text-[10px] uppercase" style="color: var(--fg-muted);">Valid Approved</p>
+          <p class="lab-mono text-lg font-bold" style="color: var(--accent-secondary);">81.6%</p>
+        </div>
+        <div class="p-2.5 rounded-lg" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle);">
+          <p class="lab-mono text-[10px] uppercase" style="color: var(--fg-muted);">Framing Shift</p>
+          <p class="lab-mono text-lg font-bold" style="color: var(--accent-tertiary);">+1.05n</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Active Experiments Strip -->
+  <section class="mt-9" aria-labelledby="arcade-rigs-heading">
+    <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+      <div>
+        <p class="lab-mono text-xs uppercase tracking-wider" style="color: var(--accent-primary);">
+          Zone 01 · /experiments
+        </p>
+        <h2 id="arcade-rigs-heading" class="text-xl sm:text-2xl font-bold mt-0.5">
+          Active Playground Rigs &amp; Harnesses
+        </h2>
+      </div>
+      <a href={withBase('/experiments')} class="lab-mono text-xs underline" style="color: var(--fg-secondary);">
+        Launch interactive simulator →
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {experiments.map((exp) => (
+        <article class="lab-card p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="lab-mono text-xs font-bold" style="color: var(--accent-primary);">
+                {exp.data.code}
+              </span>
+              <span class="lab-mono text-[11px] px-2 py-0.5 rounded" style="background: var(--bg-surface-elevated); color: var(--fg-secondary); border: 1px solid var(--border-subtle);">
+                {exp.data.status}
+              </span>
+            </div>
+
+            <h3 class="text-base font-bold mt-2.5 leading-snug">
+              {exp.data.title}
+            </h3>
+
+            <p class="text-xs leading-relaxed mt-2" style="color: var(--fg-muted);">
+              {exp.data.summary}
+            </p>
+          </div>
+
+          <div class="mt-4 pt-3.5" style="border-top: 1px solid var(--border-subtle);">
+            <p class="lab-mono text-xs font-semibold" style="color: var(--accent-secondary);">
+              {exp.data.highlightMetric}
+            </p>
+            <div class="flex flex-wrap gap-1.5 mt-2.5">
+              {exp.data.stack.map((tech) => (
+                <span class="lab-mono text-[10px] px-1.5 py-0.5 rounded" style="background: var(--bg-chip); color: var(--fg-secondary);">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- Two-Column Field Dispatches + Podcast Queue -->
+  <section class="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="lg:col-span-7">
+      <div class="flex items-end justify-between gap-3 mb-4">
+        <div>
+          <p class="lab-mono text-xs uppercase tracking-wider" style="color: var(--accent-secondary);">
+            Zone 03 · /trends
+          </p>
+          <h2 class="text-xl sm:text-2xl font-bold mt-0.5">
+            Trends &amp; Field Research
+          </h2>
+        </div>
+        <a href={withBase('/trends')} class="lab-mono text-xs underline" style="color: var(--fg-secondary);">
+          All field notes →
+        </a>
+      </div>
+
+      <div class="space-y-3.5">
+        {trends.map((post) => (
+          <a href={withBase(`/trends/${post.id}`)} class="lab-card p-5 block">
+            <div class="flex flex-wrap items-center justify-between gap-2 text-xs lab-mono" style="color: var(--fg-muted);">
+              <span style="color: var(--accent-primary);">{post.data.category}</span>
+              <span>{post.data.publishedDate} · {post.data.readTime}</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-bold mt-1.5">
+              {post.data.title}
+            </h3>
+            <p class="text-xs sm:text-sm mt-1 leading-relaxed" style="color: var(--fg-secondary);">
+              {post.data.subtitle}
+            </p>
+            <p class="lab-mono text-xs mt-3 pt-2.5" style="color: var(--accent-secondary); border-top: 1px solid var(--border-subtle);">
+              Takeaway: {post.data.keyTakeaway}
+            </p>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <div class="lg:col-span-5">
+      <div class="flex items-end justify-between gap-3 mb-4">
+        <div>
+          <p class="lab-mono text-xs uppercase tracking-wider" style="color: var(--accent-tertiary);">
+            Zone 02 · /vids
+          </p>
+          <h2 class="text-xl sm:text-2xl font-bold mt-0.5">
+            Pods &amp; Video Dispatches
+          </h2>
+        </div>
+        <a href={withBase('/vids')} class="lab-mono text-xs underline" style="color: var(--fg-secondary);">
+          Episode archive →
+        </a>
+      </div>
+
+      <div class="space-y-3.5">
+        {vids.map((ep) => (
+          <article class="lab-card p-4 sm:p-5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="lab-mono text-xs font-bold" style="color: var(--accent-tertiary);">
+                {ep.data.episodeNumber} · {ep.data.duration}
+              </span>
+              <span class="lab-mono text-xs" style="color: var(--fg-muted);">
+                {ep.data.publishedDate}
+              </span>
+            </div>
+            <h3 class="text-sm sm:text-base font-bold mt-1.5 leading-snug">
+              {ep.data.title}
+            </h3>
+            <p class="text-xs mt-1.5 leading-relaxed" style="color: var(--fg-muted);">
+              {ep.data.summary}
+            </p>
+            <div class="mt-3.5 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                data-play-episode
+                data-ep-title={ep.data.title}
+                data-ep-code={`${ep.data.episodeNumber} · ${ep.data.duration}`}
+                data-ep-freq={String(ep.data.audioFreqHz)}
+                class="lab-btn-ghost text-xs py-1.5 px-3 cursor-pointer"
+              >
+                ▶ Load in Persistent Deck
+              </button>
+              <a
+                href={ep.data.youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="lab-mono text-xs underline"
+                style="color: var(--accent-primary);"
+              >
+                YouTube ↗
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

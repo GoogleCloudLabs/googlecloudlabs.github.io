@@ -1,0 +1,178 @@
+---
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { withBase } from '../utils/paths';
+---
+
+<aside
+  id="lab-podcast-deck"
+  transition:persist="podcast-deck"
+  aria-label="Persistent Lab Podcast Deck"
+  class="fixed bottom-0 inset-x-0 z-50 backdrop-blur-md"
+  style="background: var(--deck-bg); border-top: 1px solid var(--border-strong);"
+>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3.5 min-w-0">
+      <button
+        id="deck-toggle-btn"
+        type="button"
+        data-playing="false"
+        data-freq="220"
+        class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer font-bold"
+        style="background: var(--accent-primary); color: var(--accent-primary-ink);"
+        aria-label="Play or pause lab podcast preview"
+      >
+        <svg id="deck-icon-play" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+        <svg id="deck-icon-pause" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+        </svg>
+      </button>
+
+      <div class="min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="lab-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded" style="background: var(--bg-chip); color: var(--accent-primary);">
+            Persistent Deck
+          </span>
+          <span id="deck-ep-code" class="lab-mono text-xs" style="color: var(--fg-muted);">
+            EP.01 · 28:14
+          </span>
+        </div>
+        <p id="deck-ep-title" class="text-sm font-semibold truncate mt-0.5" style="color: var(--fg-primary);">
+          Inside the Agent Factory: Why Single-Orchestrator Fleets Stall
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-4 ml-auto">
+      <div class="hidden md:flex items-end gap-1 h-6 px-2" aria-hidden="true" id="deck-visualizer">
+        <span class="w-1 h-2 rounded-full transition-all" style="background: var(--accent-primary);"></span>
+        <span class="w-1 h-4 rounded-full transition-all" style="background: var(--accent-secondary);"></span>
+        <span class="w-1 h-5 rounded-full transition-all" style="background: var(--accent-primary);"></span>
+        <span class="w-1 h-3 rounded-full transition-all" style="background: var(--accent-tertiary);"></span>
+        <span class="w-1 h-6 rounded-full transition-all" style="background: var(--accent-primary);"></span>
+        <span class="w-1 h-3.5 rounded-full transition-all" style="background: var(--accent-secondary);"></span>
+      </div>
+
+      <span id="deck-clock" class="lab-mono text-xs tabular-nums" style="color: var(--fg-muted);">
+        00:00
+      </span>
+
+      <a href={withBase('/vids')} class="lab-btn-ghost text-xs py-1.5 px-3">
+        All Episodes
+      </a>
+    </div>
+  </div>
+</aside>
+
+<script is:inline>
+  (() => {
+    if (window.__labDeckInitialized) return;
+    window.__labDeckInitialized = true;
+
+    let audioCtx = null;
+    let osc = null;
+    let gain = null;
+    let elapsedSec = 0;
+    let timerId = null;
+
+    function formatClock(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return m + ':' + s;
+    }
+
+    function updateDeckUI(playing) {
+      const btn = document.getElementById('deck-toggle-btn');
+      const playIcon = document.getElementById('deck-icon-play');
+      const pauseIcon = document.getElementById('deck-icon-pause');
+      if (!btn || !playIcon || !pauseIcon) return;
+      btn.setAttribute('data-playing', playing ? 'true' : 'false');
+      playIcon.classList.toggle('hidden', playing);
+      pauseIcon.classList.toggle('hidden', !playing);
+    }
+
+    function stopAudio() {
+      if (osc) {
+        try { osc.stop(); } catch (_) {}
+        osc.disconnect();
+        osc = null;
+      }
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+      updateDeckUI(false);
+    }
+
+    function startAudio(freq) {
+      stopAudio();
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) {
+        if (!audioCtx) audioCtx = new Ctx();
+        osc = audioCtx.createOscillator();
+        gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = Number(freq) || 220;
+        gain.gain.value = 0.025;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+      }
+      updateDeckUI(true);
+      timerId = setInterval(() => {
+        elapsedSec += 1;
+        const clock = document.getElementById('deck-clock');
+        if (clock) clock.textContent = formatClock(elapsedSec);
+        const bars = document.querySelectorAll('#deck-visualizer span');
+        bars.forEach((bar, idx) => {
+          const h = 6 + ((elapsedSec * 7 + idx * 11) % 18);
+          bar.style.height = h + 'px';
+        });
+      }, 1000);
+    }
+
+    document.addEventListener('click', (e) => {
+      const toggle = e.target.closest('#deck-toggle-btn');
+      if (toggle) {
+        const isPlaying = toggle.getAttribute('data-playing') === 'true';
+        if (isPlaying) {
+          stopAudio();
+        } else {
+          startAudio(toggle.getAttribute('data-freq') || '220');
+        }
+        return;
+      }
+
+      const trigger = e.target.closest('[data-play-episode]');
+      if (trigger) {
+        const title = trigger.getAttribute('data-ep-title') || '';
+        const code = trigger.getAttribute('data-ep-code') || '';
+        const freq = trigger.getAttribute('data-ep-freq') || '220';
+        const titleEl = document.getElementById('deck-ep-title');
+        const codeEl = document.getElementById('deck-ep-code');
+        const btn = document.getElementById('deck-toggle-btn');
+        if (titleEl && title) titleEl.textContent = title;
+        if (codeEl && code) codeEl.textContent = code;
+        if (btn) btn.setAttribute('data-freq', freq);
+        elapsedSec = 0;
+        const clock = document.getElementById('deck-clock');
+        if (clock) clock.textContent = '00:00';
+        startAudio(freq);
+      }
+    });
+  })();
+</script>

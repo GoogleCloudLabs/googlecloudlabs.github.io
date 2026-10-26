@@ -1,0 +1,8 @@
+dist/
+.astro/
+node_modules/
+.npmrc
+.DS_Store
+*.tsbuildinfo
+.env
+.env.*

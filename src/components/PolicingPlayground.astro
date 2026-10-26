@@ -1,0 +1,125 @@
+---
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+---
+
+<section class="lab-card p-6 sm:p-7" aria-labelledby="sim-heading">
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+    <div>
+      <span class="lab-pill">Interactive Island · Zero Telemetry</span>
+      <h2 id="sim-heading" class="text-xl sm:text-2xl font-bold mt-2.5">
+        Multi-Model Marketplace Policing Simulator
+      </h2>
+      <p class="text-sm mt-1" style="color: var(--fg-muted);">
+        Replay empirical outcomes from 1,110 adversarial B2B compute bids across cross-family vs. same-family model pairings.
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2" role="group" aria-label="Select model pairing">
+      <button type="button" class="pair-btn lab-btn-ghost text-xs py-1.5 px-3" data-pair="cross-a" aria-pressed="true">
+        Cross-Family A → B
+      </button>
+      <button type="button" class="pair-btn lab-btn-ghost text-xs py-1.5 px-3" data-pair="cross-b" aria-pressed="false">
+        Cross-Family B → A
+      </button>
+      <button type="button" class="pair-btn lab-btn-ghost text-xs py-1.5 px-3" data-pair="same-a" aria-pressed="false">
+        Same-Family Large → Mid
+      </button>
+      <button type="button" class="pair-btn lab-btn-ghost text-xs py-1.5 px-3" data-pair="same-b" aria-pressed="false">
+        Same-Family Mid → Large
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+    <div class="p-4 rounded-lg" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle);">
+      <p class="lab-mono text-[11px] uppercase" style="color: var(--fg-muted);">Attacks Blocked</p>
+      <p id="metric-blocked" class="lab-mono text-2xl sm:text-3xl font-bold mt-1" style="color: var(--accent-primary);">77.4%</p>
+      <p class="text-xs mt-1" style="color: var(--fg-muted);">Higher is safer</p>
+    </div>
+
+    <div class="p-4 rounded-lg" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle);">
+      <p class="lab-mono text-[11px] uppercase" style="color: var(--fg-muted);">Valid Bids Approved</p>
+      <p id="metric-valid" class="lab-mono text-2xl sm:text-3xl font-bold mt-1" style="color: var(--accent-secondary);">81.6%</p>
+      <p class="text-xs mt-1" style="color: var(--fg-muted);">Autonomous throughput</p>
+    </div>
+
+    <div class="p-4 rounded-lg" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle);">
+      <p class="lab-mono text-[11px] uppercase" style="color: var(--fg-muted);">Human Escalation</p>
+      <p id="metric-escalation" class="lab-mono text-2xl sm:text-3xl font-bold mt-1" style="color: var(--fg-primary);">19.0%</p>
+      <p class="text-xs mt-1" style="color: var(--fg-muted);">Operator review load</p>
+    </div>
+
+    <div class="p-4 rounded-lg" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle);">
+      <p class="lab-mono text-[11px] uppercase" style="color: var(--fg-muted);">Attack Leak Rate</p>
+      <p id="metric-leaked" class="lab-mono text-2xl sm:text-3xl font-bold mt-1" style="color: var(--accent-tertiary);">2.3%</p>
+      <p class="text-xs mt-1" style="color: var(--fg-muted);">Unblocked exploits</p>
+    </div>
+  </div>
+
+  <p id="metric-verdict" class="mt-4 text-sm font-medium p-3.5 rounded-lg" style="background: var(--bg-chip); color: var(--fg-primary); border: 1px solid var(--border-subtle);">
+    Verdict (420 bids): Decisive lead paired with an orthogonal cross-family auditor achieves highest valid throughput (81.6%) and lowest attack leak rate among high-throughput configs (2.3%).
+  </p>
+</section>
+
+<script is:inline>
+  (() => {
+    const DATA = {
+      'cross-a': {
+        blocked: '77.4%',
+        valid: '81.6%',
+        escalation: '19.0%',
+        leaked: '2.3%',
+        verdict: 'Verdict (420 bids): Decisive lead paired with an orthogonal cross-family auditor achieves highest valid throughput (81.6%) and blocks 77.4% of adversarial bids with only 19.0% human escalation.',
+      },
+      'cross-b': {
+        blocked: '71.2%',
+        valid: '75.7%',
+        escalation: '28.4%',
+        leaked: '10.6%',
+        verdict: 'Verdict (420 bids): Reversing lead/auditor roles preserves strong valid throughput (75.7%) but increases attack leakage to 10.6% and human escalation to 28.4%.',
+      },
+      'same-a': {
+        blocked: '36.4%',
+        valid: '49.3%',
+        escalation: '56.2%',
+        leaked: '0.0%',
+        verdict: 'Verdict (130 bids): Same-family pairing compounds shared hesitation — punting 56.2% of all marketplace bids to human operators and cutting autonomous throughput in half.',
+      },
+      'same-b': {
+        blocked: '31.0%',
+        valid: '67.0%',
+        escalation: '40.0%',
+        leaked: '6.0%',
+        verdict: 'Verdict (140 bids): Same-family mid-tier lead with larger sibling auditor still escalates 40.0% of bids while catching only 31.0% of adversarial injections autonomously.',
+      },
+    };
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.pair-btn');
+      if (!btn) return;
+      const key = btn.getAttribute('data-pair');
+      const row = DATA[key];
+      if (!row) return;
+
+      document.querySelectorAll('.pair-btn').forEach((b) => {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+      document.getElementById('metric-blocked').textContent = row.blocked;
+      document.getElementById('metric-valid').textContent = row.valid;
+      document.getElementById('metric-escalation').textContent = row.escalation;
+      document.getElementById('metric-leaked').textContent = row.leaked;
+      document.getElementById('metric-verdict').textContent = row.verdict;
+    });
+  })();
+</script>

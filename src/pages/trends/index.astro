@@ -1,0 +1,87 @@
+---
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LabDiagram from '../../components/LabDiagram.astro';
+import { withBase } from '../../utils/paths';
+
+const trends = (await getCollection('trends')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout
+  title="Trends & Field Notes · Google Cloud Labs"
+  description="Benchmark deep dives, behavioral evaluation studies, and agent architecture field notes from Google Cloud Labs."
+>
+  <header class="mb-8">
+    <span class="lab-pill">Zone 03 · /trends</span>
+    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-3">
+      Trends &amp; Field Notes
+    </h1>
+    <p class="text-sm sm:text-base mt-2 max-w-3xl" style="color: var(--fg-secondary);">
+      Empirical benchmark deep dives, behavioral model probes, and architecture dispatches authored in Markdown Content Collections with theme-reactive SVG diagrams.
+    </p>
+  </header>
+
+  <section class="space-y-6" aria-label="Published field notes">
+    {trends.map((post) => (
+      <article class="lab-card p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <div class="lg:col-span-7">
+          <div class="flex flex-wrap items-center gap-3 text-xs lab-mono" style="color: var(--fg-muted);">
+            <span style="color: var(--accent-primary); font-weight: 700;">{post.data.category}</span>
+            <span>·</span>
+            <span>{post.data.publishedDate}</span>
+            <span>·</span>
+            <span>{post.data.readTime}</span>
+          </div>
+
+          <h2 class="text-xl sm:text-2xl font-bold mt-2.5 leading-snug">
+            <a href={withBase(`/trends/${post.id}`)} class="hover:underline">
+              {post.data.title}
+            </a>
+          </h2>
+
+          <p class="text-sm sm:text-base mt-2 leading-relaxed" style="color: var(--fg-secondary);">
+            {post.data.subtitle}
+          </p>
+
+          <p class="lab-mono text-xs mt-4 p-3 rounded-lg" style="background: var(--bg-surface-elevated); color: var(--accent-secondary); border: 1px solid var(--border-subtle);">
+            Key Finding: {post.data.keyTakeaway}
+          </p>
+
+          <div class="mt-4 flex flex-wrap items-center gap-3">
+            <a href={withBase(`/trends/${post.id}`)} class="lab-btn-primary text-xs">
+              Read Full Dispatch →
+            </a>
+            {post.data.externalPaperUrl && (
+              <a
+                href={post.data.externalPaperUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="lab-btn-ghost text-xs"
+              >
+                arXiv Paper ↗
+              </a>
+            )}
+          </div>
+        </div>
+
+        <div class="lg:col-span-5">
+          <LabDiagram kind={post.data.diagramKind} caption={post.data.category} />
+        </div>
+      </article>
+    ))}
+  </section>
+</BaseLayout>

@@ -1,0 +1,128 @@
+---
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { ClientRouter } from 'astro:transitions';
+import PodcastDeck from '../components/PodcastDeck.astro';
+import { withBase } from '../utils/paths';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = 'Interactive R&D arcade from Google Cloud Labs: open-source agent experiments, multi-model evaluation harnesses, podcasts, and field notes.',
+} = Astro.props;
+
+const navLinks = [
+  { href: withBase('/'), label: 'Arcade' },
+  { href: withBase('/experiments'), label: 'Playground' },
+  { href: withBase('/vids'), label: 'Pods & Vids' },
+  { href: withBase('/trends'), label: 'Trends & Field Notes' },
+];
+---
+
+<!doctype html>
+<html lang="en" data-theme="arcade">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <ClientRouter />
+    <script is:inline>
+      function applyLabThemeFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const qTheme = params.get('theme');
+        if (qTheme === 'arcade' || qTheme === 'blueprint' || qTheme === 'kinetic') {
+          window.__labTheme = qTheme;
+        }
+        const active = window.__labTheme || 'arcade';
+        document.documentElement.setAttribute('data-theme', active);
+        document.querySelectorAll('.theme-btn').forEach((btn) => {
+          btn.setAttribute('aria-pressed', btn.getAttribute('data-set-theme') === active ? 'true' : 'false');
+        });
+      }
+      applyLabThemeFromUrl();
+      document.addEventListener('astro:after-swap', applyLabThemeFromUrl);
+    </script>
+  </head>
+  <body>
+    <header class="sticky top-0 z-40 backdrop-blur-md" style="background: var(--deck-bg); border-bottom: 1px solid var(--border-subtle);">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        <a href={withBase('/')} class="flex items-center gap-2.5 font-bold tracking-tight text-base sm:text-lg shrink-0">
+          <span class="w-8 h-8 rounded-lg flex items-center justify-center lab-mono text-xs font-extrabold" style="background: var(--accent-primary); color: var(--accent-primary-ink);">
+            GCL
+          </span>
+          <span>Google Cloud <span style="color: var(--accent-primary);">Labs</span></span>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-6 text-sm font-medium" aria-label="Main site sections">
+          {navLinks.map((item) => (
+            <a href={item.href} class="hover:opacity-80 transition-opacity" style="color: var(--fg-secondary);">
+              {item.label}
+            </a>
+          ))}
+        </nav>
+
+        <div class="flex items-center gap-1.5" role="group" aria-label="Candidate theme switcher">
+          <button type="button" data-set-theme="arcade" aria-pressed="true" class="theme-btn lab-mono text-[11px] px-2.5 py-1 rounded border cursor-pointer" style="border-color: var(--border-subtle);">
+            01 Neon
+          </button>
+          <button type="button" data-set-theme="blueprint" aria-pressed="false" class="theme-btn lab-mono text-[11px] px-2.5 py-1 rounded border cursor-pointer" style="border-color: var(--border-subtle);">
+            02 Blueprint
+          </button>
+          <button type="button" data-set-theme="kinetic" aria-pressed="false" class="theme-btn lab-mono text-[11px] px-2.5 py-1 rounded border cursor-pointer" style="border-color: var(--border-subtle);">
+            03 Kinetic
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <slot />
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-10 text-xs" style="border-top: 1px solid var(--border-subtle); color: var(--fg-muted);">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <p>
+          Apache 2.0 Open Source Showcase · <a href="https://github.com/GoogleCloudLabs/googlecloudlabs.github.io" class="underline">GoogleCloudLabs/googlecloudlabs.github.io</a> · Zero cookies, zero trackers.
+        </p>
+        <p>
+          Not an officially supported Google product · Not eligible for Google OSS VRP.
+        </p>
+      </div>
+    </footer>
+
+    <PodcastDeck />
+
+    <script is:inline>
+      applyLabThemeFromUrl();
+      document.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-set-theme]');
+        if (!btn) return;
+        const next = btn.getAttribute('data-set-theme');
+        window.__labTheme = next;
+        document.documentElement.setAttribute('data-theme', next);
+        document.querySelectorAll('.theme-btn').forEach((b) => {
+          b.setAttribute('aria-pressed', b.getAttribute('data-set-theme') === next ? 'true' : 'false');
+        });
+      });
+    </script>
+  </body>
+</html>

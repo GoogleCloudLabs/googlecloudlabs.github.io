@@ -1,0 +1,97 @@
+---
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PolicingPlayground from '../components/PolicingPlayground.astro';
+
+const rawExperiments = (await getCollection('experiments')).sort((a, b) => a.data.order - b.data.order);
+const renderedExperiments = await Promise.all(
+  rawExperiments.map(async (entry) => ({
+    entry,
+    ...(await render(entry)),
+  })),
+);
+---
+
+<BaseLayout
+  title="Playground · Google Cloud Labs"
+  description="Interactive evaluation harnesses, multi-model policing simulators, and autonomous coding prototypes."
+>
+  <header class="mb-7">
+    <span class="lab-pill">Zone 01 · /experiments</span>
+    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-3">
+      The Playground
+    </h1>
+    <p class="text-sm sm:text-base mt-2 max-w-3xl" style="color: var(--fg-secondary);">
+      Client-side interactive islands, open-source agent evaluation harnesses, and reproducible experiment rigs shipped from Google Cloud Labs sprints.
+    </p>
+  </header>
+
+  <PolicingPlayground />
+
+  <section class="mt-9 grid grid-cols-1 md:grid-cols-2 gap-5" aria-label="Experiment directory">
+    {renderedExperiments.map(({ entry, Content }) => (
+      <article class="lab-card p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="lab-mono text-xs font-bold" style="color: var(--accent-primary);">
+              {entry.data.code}
+            </span>
+            <span class="lab-mono text-xs px-2.5 py-0.5 rounded" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); color: var(--fg-secondary);">
+              {entry.data.status}
+            </span>
+          </div>
+
+          <h2 class="text-xl font-bold mt-2.5">
+            {entry.data.title}
+          </h2>
+
+          <p class="text-sm mt-2 leading-relaxed" style="color: var(--fg-secondary);">
+            {entry.data.summary}
+          </p>
+
+          <div class="mt-4 text-xs sm:text-sm space-y-2 leading-relaxed" style="color: var(--fg-muted);">
+            <Content />
+          </div>
+        </div>
+
+        <div class="mt-5 pt-4 flex flex-wrap items-center justify-between gap-3" style="border-top: 1px solid var(--border-subtle);">
+          <div>
+            <p class="lab-mono text-xs font-bold" style="color: var(--accent-secondary);">
+              {entry.data.highlightMetric}
+            </p>
+            <div class="flex flex-wrap gap-1.5 mt-2">
+              {entry.data.stack.map((tech) => (
+                <span class="lab-mono text-[11px] px-2 py-0.5 rounded" style="background: var(--bg-chip); color: var(--fg-primary);">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <a
+            href={entry.data.repoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="lab-btn-ghost text-xs py-2 px-3.5"
+          >
+            GitHub Repo ↗
+          </a>
+        </div>
+      </article>
+    ))}
+  </section>
+</BaseLayout>
